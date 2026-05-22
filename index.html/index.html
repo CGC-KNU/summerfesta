@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>우주라이크 여름 맞이 기획전</title>
+
+    <link rel="stylesheet" as="style" crossorigin
+        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/variable/pretendardvariable.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --text-dark:    #0747a6;
+            --blue-mid:     #0369a1;
+            --point-font:   'Jua', sans-serif;
+            --base-font:    'Pretendard Variable', sans-serif;
+            --glass-bg:     rgba(255,255,255,0.3);
+            --glass-border: rgba(255,255,255,0.5);
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+        body {
+            background: linear-gradient(180deg, #b3e5fc 0%, #81d4fa 100%);
+            min-height: 100vh;
+            display: flex; justify-content: center;
+            overflow: hidden;
+            font-family: var(--base-font);
+        }
+
+        /* 물방울 애니메이션 */
+        .bubbles { position:fixed; inset:0; z-index:0; pointer-events:none; }
+        .bubble {
+            position:absolute; bottom:-80px;
+            background: rgba(255,255,255,0.38);
+            border-radius:50%;
+            animation: floatUp 8s infinite ease-in;
+        }
+        @keyframes floatUp {
+            0%   { transform:translateY(0) scale(1);    opacity:0; }
+            20%  { opacity:0.75; }
+            100% { transform:translateY(-120vh) scale(1.6); opacity:0; }
+        }
+
+        /* 컨테이너 */
+        .app-container {
+            position:relative; width:100%; max-width:480px; height:100vh;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter:blur(15px); -webkit-backdrop-filter:blur(15px);
+            overflow-y:auto; z-index:1;
+            display:flex; flex-direction:column;
+            padding:40px 20px;
+        }
+        .app-container::-webkit-scrollbar { display:none; }
+
+        /* 헤더 */
+        .header { text-align:center; margin-bottom:40px; position: relative; }
+
+        .header h1 {
+            font-family: var(--point-font);
+            font-weight: normal;
+            font-size: 2.8rem;
+            color: var(--text-dark);
+            line-height: 1.05; letter-spacing:1.5px;
+            margin-bottom: 15px; word-break:keep-all;
+            text-shadow: 2px 2px 0 rgba(255,255,255,0.8), 0 4px 10px rgba(255,255,255,0.3);
+            -webkit-font-smoothing:antialiased;
+        }
+        .header h1 .brand {
+            font-size: 3.4rem;
+            letter-spacing: 0.5px;
+        }
+
+        /* 랭킹 버튼 (우측 상단 메달) */
+        .ranking-cta {
+            position: absolute;
+            top: -4px;
+            right: 0;
+            width: 38px;
+            height: 44px;
+            background: transparent;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            text-decoration: none;
+            transition: transform 0.2s ease;
+            z-index: 10;
+            padding: 0;
+            filter: drop-shadow(0 3px 6px rgba(245, 158, 11, 0.35));
+        }
+        .ranking-cta:active { transform: scale(0.92); }
+        .ranking-cta svg { width: 100%; height: 100%; display: block; }
+        .ranking-cta .medal-ribbon-left { fill: #38bdf8; }
+        .ranking-cta .medal-ribbon-right { fill: #0284c7; }
+        .ranking-cta .medal-body-outer { fill: #fbbf24; stroke: #fff; stroke-width: 2; }
+        .ranking-cta .medal-body-inner { fill: #f59e0b; }
+        .ranking-cta .medal-star { fill: #fffbeb; }
+
+        .coupon-notice-wrap { margin-bottom:28px; }
+        .highlight {
+            background: linear-gradient(to top, rgba(255,235,59,0.7) 45%, transparent 45%);
+            padding:0 4px;
+        }
+
+        .detail-link {
+            font-family: var(--base-font);
+            font-size:0.85rem; font-weight:600;
+            color:var(--blue-mid);
+            text-decoration:underline; text-underline-offset:3px;
+            cursor:pointer; background:none; border:none; padding:0;
+            letter-spacing:0.2px; transition:opacity 0.2s;
+        }
+        .detail-link:active { opacity:0.55; }
+
+        .challenge-title {
+            font-family: var(--point-font);
+            font-weight:normal; font-size:1.5rem;
+            color:var(--blue-mid); background:#fff;
+            display:inline-block; padding:6px 22px;
+            border-radius:50px; box-shadow:0 4px 15px rgba(0,0,0,0.05);
+            margin-bottom:15px; letter-spacing:0.5px;
+            animation: weakFloat 4s infinite ease-in-out;
+        }
+        @keyframes weakFloat {
+            0%,100% { transform:translateY(0); }
+            50%     { transform:translateY(-5px); }
+        }
+
+        .period {
+            font-family: var(--base-font);
+            font-size:0.9rem; color:#475569; font-weight:600;
+            background:rgba(255,255,255,0.4);
+            padding:5px 15px; border-radius:30px; letter-spacing:0.5px;
+        }
+
+        /* 카드 리스트 */
+        .card-list { display:flex; flex-direction:column; gap:24px; padding-bottom:50px; }
+
+        .game-card {
+            display:flex; align-items:center;
+            background:var(--glass-bg); border:2px solid var(--glass-border);
+            border-radius:30px; padding:22px 24px;
+            text-decoration:none;
+            box-shadow:0 10px 25px rgba(0,162,255,0.1);
+            min-height:130px;
+            opacity:0; transform:translateY(20px);
+            transition:opacity 0.4s ease, transform 0.4s ease;
+            animation:floatingCard 4s infinite ease-in-out alternate;
+        }
+        .game-card.visible { opacity:1; transform:translateY(0); }
+        @keyframes floatingCard { from{margin-top:0} to{margin-top:12px} }
+        .game-card:active { transform:scale(0.96); }
+        .game-card:nth-child(1){ animation-delay:0s;   transition-delay:0.1s; }
+        .game-card:nth-child(2){ animation-delay:1.5s; transition-delay:0.2s; }
+        .game-card:nth-child(3){ animation-delay:3s;   transition-delay:0.3s; }
+
+        .card-icon { font-size:3.2rem; margin-right:16px; flex-shrink:0; }
+        .card-content { flex:1; }
+        .card-content h2 {
+            font-family:var(--point-font); font-weight:normal;
+            font-size:1.5rem; color:var(--text-dark);
+            margin-bottom:4px; letter-spacing:0.5px;
+        }
+        .card-content .card-desc {
+            font-family:var(--base-font);
+            font-size:0.85rem; color:#334155; font-weight:500;
+            line-height:1.4; margin-bottom:0;
+        }
+
+        .play-btn {
+            font-family:var(--point-font); font-weight:normal;
+            background:var(--blue-mid); color:#fff; border:none;
+            padding:8px 18px; border-radius:20px; font-size:1.1rem;
+            box-shadow:0 4px 10px rgba(0,0,0,0.1);
+            margin-left:14px; flex-shrink:0; letter-spacing:0.5px;
+        }
+
+        .game-card.locked {
+            background:rgba(255,255,255,0.15);
+            border-color:rgba(255,255,255,0.2);
+            pointer-events:none;
+        }
+        .game-card.locked .card-icon,
+        .game-card.locked h2,
+        .game-card.locked .card-desc { opacity:0.45; filter:grayscale(0.5); }
+        .lock-badge {
+            width:36px; height:36px; border-radius:50%;
+            background:rgba(0,0,0,0.05);
+            display:flex; align-items:center; justify-content:center;
+            font-size:1.2rem; margin-left:14px;
+        }
+
+        /* ★ 팝업창 (첨부 파일 원복 디자인) ★ */
+        .popup-overlay {
+            position:fixed; inset:0; z-index:100;
+            background:rgba(7,71,166,0.22);
+            backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+            display:flex; align-items:center; justify-content:center;
+            padding:28px; opacity:0; pointer-events:none;
+            transition:opacity 0.28s ease;
+        }
+        .popup-overlay.open { opacity:1; pointer-events:auto; }
+
+        .popup-box {
+            background:rgba(255,255,255,0.96);
+            border-radius:28px; padding:36px 28px 28px;
+            width:100%; max-width:380px;
+            box-shadow:0 20px 60px rgba(3,105,161,0.16);
+            border:1.5px solid rgba(255,255,255,0.85);
+            position:relative;
+            transform:translateY(28px) scale(0.96);
+            transition:transform 0.36s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .popup-overlay.open .popup-box { transform:translateY(0) scale(1); }
+
+        .popup-close {
+            position:absolute; top:16px; right:18px;
+            width:30px; height:30px; border-radius:50%;
+            background:rgba(3,105,161,0.08); border:none; cursor:pointer;
+            font-size:0.9rem; color:var(--blue-mid);
+            display:flex; align-items:center; justify-content:center;
+            font-family:var(--base-font); transition:background 0.2s;
+        }
+        .popup-close:active { background:rgba(3,105,161,0.18); }
+
+        .popup-title {
+            font-family:var(--point-font); font-weight:normal;
+            font-size:1.5rem; color:var(--text-dark);
+            text-align:center; line-height:1.4;
+            margin-bottom:22px; word-break:keep-all;
+        }
+
+        .popup-body { font-family:var(--base-font); font-size:0.88rem; color:#475569; word-break:keep-all; }
+        .popup-section { margin-bottom:18px; }
+        .popup-section:last-child { margin-bottom:0; }
+        .popup-section-title {
+            font-family:var(--point-font); font-weight:normal;
+            font-size:1rem; color:var(--blue-mid);
+            margin-bottom:7px; letter-spacing:0.3px;
+        }
+        .popup-section p { line-height:1.75; letter-spacing:-0.3px; }
+
+        /* 보상 테이블 */
+        .reward-table { width:100%; border-collapse:collapse; margin-top:4px; }
+        .reward-table tr { border-bottom:1px solid rgba(3,105,161,0.08); }
+        .reward-table tr:last-child { border-bottom:none; }
+        .reward-table td { padding:8px 4px; font-size:0.86rem; vertical-align:middle; letter-spacing:-0.3px; }
+        .reward-table .game-name { font-weight:600; color:var(--text-dark); }
+        .reward-table .diff-col { font-size:0.78rem; font-weight:700; white-space:nowrap; padding-left:10px; }
+        .reward-table .diff-col.high { color:#0747a6; }
+        .reward-table .diff-col.mid  { color:#0369a1; }
+        .reward-table .diff-col.low  { color:#0ea5e9; }
+        .reward-table .coupon-col { text-align:right; font-weight:700; color:var(--blue-mid); white-space:nowrap; }
+
+        .popup-divider { border:none; border-top:1px solid rgba(3,105,161,0.1); margin:18px 0; }
+        .popup-highlight { background:linear-gradient(to top, rgba(255,235,59,0.65) 40%, transparent 40%); padding:0 3px; font-weight:700; color:#0747a6; }
+
+        .popup-footer { margin-top:24px; text-align:center; }
+        .popup-confirm-btn {
+            font-family:var(--point-font); font-weight:normal;
+            background:var(--blue-mid); color:#fff; border:none;
+            padding:11px 48px; border-radius:50px; font-size:1.1rem;
+            cursor:pointer; letter-spacing:0.5px;
+            box-shadow:0 4px 14px rgba(3,105,161,0.25);
+            transition:background 0.2s;
+        }
+        .popup-confirm-btn:active { background:#025580; }
+
+        /* 하단 버튼 영역 */
+        .bottom-actions { display:flex; flex-direction:column; gap:12px; padding: 8px 0 32px; }
+        .action-btn {
+            width:100%; padding:15px; border-radius:22px; border:none; cursor:pointer;
+            font-family:var(--point-font); font-weight:normal; font-size:1.1rem; letter-spacing:0.5px;
+            display:flex; align-items:center; justify-content:center; gap:8px;
+            background:var(--blue-mid); color:#fff; box-shadow:0 6px 20px rgba(3,105,161,0.28);
+        }
+        .action-btn:active { transform:scale(0.97); }
+
+        .coupon-notice {
+            font-family: var(--point-font); font-size: 1.1rem; color:var(--text-dark);
+            display:block; text-align:center; margin-bottom:8px; word-break:keep-all;
+            animation: noticeFloat 3.5s infinite ease-in-out;
+        }
+        @keyframes noticeFloat { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-4px); } }
+    </style>
+</head>
+<body>
+
+<div class="bubbles" id="bubbles-container"></div>
+
+<div class="app-container">
+    <header class="header">
+        <a href="ranking.html" class="ranking-cta" title="랭킹 보기" aria-label="랭킹 보기">
+            <svg viewBox="0 0 48 56" xmlns="http://www.w3.org/2000/svg">
+                <!-- 리본 (V자 형태) -->
+                <polygon class="medal-ribbon-left" points="8,0 20,0 22,28 14,32"/>
+                <polygon class="medal-ribbon-right" points="40,0 28,0 26,28 34,32"/>
+                <!-- 메달 본체 -->
+                <circle class="medal-body-outer" cx="24" cy="38" r="15"/>
+                <circle class="medal-body-inner" cx="24" cy="38" r="11"/>
+                <!-- 별 -->
+                <polygon class="medal-star" points="24,31 26,36 31,36 27,39 28,44 24,41 20,44 21,39 17,36 22,36"/>
+            </svg>
+        </a>
+
+        <h1><span class="brand">우주라이크</span><br>여름 맞이 기획전</h1>
+
+        <div class="coupon-notice-wrap">
+            <span class="coupon-notice">
+                미니게임만 해도 <span class="highlight">경북대 인근 식당가 쿠폰</span>이 내 손에?
+            </span>
+            <button class="detail-link" id="detailBtn">자세히보기</button>
+        </div>
+
+        <div class="challenge-title">미니게임 챌린지</div>
+        <div><span class="period">기간: 2026. 5. 22 — 6. 7</span></div>
+    </header>
+
+    <main class="card-list">
+        <a href="watermelon-game.html" class="game-card">
+            <div class="card-icon">🍉</div>
+            <div class="card-content">
+                <h2>수박 게임</h2>
+                <p class="card-desc">과일을 합쳐서 커다란<br>여름 수박을 만들어요!</p>
+            </div>
+            <button class="play-btn">GO</button>
+        </a>
+
+        <a href="surfing-game.html" class="game-card">
+            <div class="card-icon">🏄‍♂️</div>
+            <div class="card-content">
+                <h2>서핑 보드 게임</h2>
+                <p class="card-desc">파도를 가르며 시원하게<br>장애물을 피해보세요!</p>
+            </div>
+            <button class="play-btn">GO</button>
+        </a>
+
+        <a href="ice-breaking.html" class="game-card">
+            <div class="card-icon">🧊</div>
+            <div class="card-content">
+                <h2>얼음 깨기</h2>
+                <p class="card-desc">제한 시간 내에 연타하여<br>쿠폰을 구출하세요!</p>
+            </div>
+            <button class="play-btn">GO</button>
+        </a>
+    </main>
+
+    <div class="bottom-actions">
+        <button class="action-btn" id="appLinkBtn">우주라이크 앱 바로가기</button>
+        <button class="action-btn" id="shareBtn">공유하기</button>
+    </div>
+</div>
+
+<div class="popup-overlay" id="popupOverlay">
+    <div class="popup-box">
+        <button class="popup-close" id="popupClose">✕</button>
+
+        <p class="popup-title">우주라이크<br>여름 맞이 특별 기획전</p>
+
+        <div class="popup-body">
+            <div class="popup-section">
+                <p class="popup-section-title">이벤트 안내</p>
+                <p>
+                    5월 22일부터 6월 7일까지 진행되는<br>
+                    여름 맞이 <span class="popup-highlight">한정 특별 기획전</span>입니다.<br>
+                    3종의 미니게임을 클리어하면<br>
+                    경북대 인근 식당가에서 바로 사용 가능한<br>
+                    한정 쿠폰을 즉시 발급해 드립니다.
+                </p>
+            </div>
+            <hr class="popup-divider">
+            <div class="popup-section">
+                <p class="popup-section-title">게임별 보상</p>
+                <table class="reward-table">
+                    <tr>
+                        <td class="game-name">수박 게임</td>
+                        <td class="diff-col high">난이도 상</td>
+                        <td class="coupon-col"><span class="popup-highlight">5종 쿠폰</span></td>
+                    </tr>
+                    <tr>
+                        <td class="game-name">서핑 보드 게임</td>
+                        <td class="diff-col mid">난이도 중</td>
+                        <td class="coupon-col"><span class="popup-highlight">3종 쿠폰</span></td>
+                    </tr>
+                    <tr>
+                        <td class="game-name">얼음 깨기</td>
+                        <td class="diff-col low">난이도 하</td>
+                        <td class="coupon-col"><span class="popup-highlight">1종 쿠폰</span></td>
+                    </tr>
+                </table>
+            </div>
+            <hr class="popup-divider">
+            <div class="popup-section">
+                <p class="popup-section-title">도전 목표</p>
+                <p>
+                    기한 내 모든 게임을 클리어하고<br>
+                    최대 <span class="popup-highlight">9종 쿠폰</span>을 모두 획득해 보세요!
+                </p>
+            </div>
+        </div>
+
+        <div class="popup-footer">
+            <button class="popup-confirm-btn" id="popupConfirm">확인</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function createBubbles() {
+        const container = document.getElementById('bubbles-container');
+        for (let i = 0; i < 25; i++) {
+            const b = document.createElement('div');
+            b.classList.add('bubble');
+            const size = Math.random() * 55 + 15;
+            b.style.width = `${size}px`; b.style.height = `${size}px`;
+            b.style.left = `${Math.random() * 100}%`;
+            b.style.animationDuration = `${Math.random() * 5 + 5}s`;
+            b.style.animationDelay = `${Math.random() * 8}s`;
+            container.appendChild(b);
+        }
+    }
+    function initObserver() {
+        const obs = new IntersectionObserver(entries => {
+            entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.game-card').forEach(c => obs.observe(c));
+    }
+    function initPopup() {
+        const overlay = document.getElementById('popupOverlay');
+        const open  = () => overlay.classList.add('open');
+        const close = () => overlay.classList.remove('open');
+        document.getElementById('detailBtn').addEventListener('click', open);
+        document.getElementById('popupClose').addEventListener('click', close);
+        document.getElementById('popupConfirm').addEventListener('click', close);
+        overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+    }
+
+    function initShareButton() {
+        const shareBtn = document.getElementById('shareBtn');
+        if (!shareBtn) return;
+
+        const shareData = {
+            title: '우주라이크 여름 맞이 기획전',
+            text: '미니게임 챌린지에 참여하고 쿠폰 받으세요! 🍉🏄‍♂️🧊',
+            url: window.location.href
+        };
+
+        const toast = (msg) => {
+            // 간단한 화면 하단 토스트
+            let t = document.getElementById('shareToast');
+            if (!t) {
+                t = document.createElement('div');
+                t.id = 'shareToast';
+                t.style.cssText = `
+                    position: fixed; left: 50%; bottom: 80px; transform: translateX(-50%);
+                    background: rgba(3, 105, 161, 0.95); color: #fff;
+                    padding: 12px 22px; border-radius: 30px;
+                    font-family: 'Jua', sans-serif; font-size: 0.95rem;
+                    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+                    opacity: 0; transition: opacity 0.3s ease;
+                    z-index: 9999; pointer-events: none; white-space: nowrap;
+                `;
+                document.body.appendChild(t);
+            }
+            t.textContent = msg;
+            requestAnimationFrame(() => { t.style.opacity = '1'; });
+            clearTimeout(t._timer);
+            t._timer = setTimeout(() => { t.style.opacity = '0'; }, 2200);
+        };
+
+        const copyToClipboard = async (text) => {
+            try {
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(text);
+                    return true;
+                }
+                // fallback: textarea + execCommand
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.select();
+                const ok = document.execCommand('copy');
+                document.body.removeChild(ta);
+                return ok;
+            } catch (e) {
+                return false;
+            }
+        };
+
+        shareBtn.addEventListener('click', async () => {
+            // 1순위: Web Share API (모바일에서 네이티브 공유 시트)
+            if (navigator.share) {
+                try {
+                    await navigator.share(shareData);
+                    return;
+                } catch (e) {
+                    // 사용자가 취소한 경우 등 - 조용히 무시
+                    if (e.name === 'AbortError') return;
+                    // 그 외 에러는 fallback으로 진행
+                }
+            }
+            // 2순위: 클립보드에 URL 복사
+            const ok = await copyToClipboard(shareData.url);
+            toast(ok ? '링크가 복사되었어요! 친구에게 공유해보세요.' : '복사에 실패했어요. URL을 직접 복사해주세요.');
+        });
+    }
+
+    window.onload = () => { createBubbles(); initObserver(); initPopup(); initShareButton(); };
+</script>
+</body>
+</html>
