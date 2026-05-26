@@ -208,7 +208,29 @@
                 .catch(() => alert('복사 실패: ' + code));
         }
         function goToApp() { window.open('https://ujulike.com', '_blank'); }
-        function generateMockCoupon() { return "WL-" + Math.random().toString(36).substring(2, 7).toUpperCase(); }
+
+        const COUPON_CYCLE_START = new Date('2026-05-26T00:00:00+09:00');
+        const COUPON_POOL = [
+            'SF1-A4M9', // Day 01: 2026-05-26
+            'SF1-B7N2', // Day 02: 2026-05-27
+            'SF1-C1P6', // Day 03: 2026-05-28
+            'SF1-D5Q3', // Day 04: 2026-05-29
+            'SF1-E8R7', // Day 05: 2026-05-30
+            'SF1-F2S4', // Day 06: 2026-05-31
+            'SF1-G6T8', // Day 07: 2026-06-01
+            'SF1-H3U1', // Day 08: 2026-06-02
+            'SF1-I9V5', // Day 09: 2026-06-03
+            'SF1-J4W2', // Day 10: 2026-06-04
+            'SF1-K7X6', // Day 11: 2026-06-05
+            'SF1-L1Y3', // Day 12: 2026-06-06
+            'SF1-M5Z8', // Day 13: 2026-06-07
+            'SF1-N2A4', // Day 14: 2026-06-08
+        ];
+        function getCycleCoupon() {
+            const diffMs = Date.now() - COUPON_CYCLE_START.getTime();
+            const dayIndex = Math.floor(diffMs / 86400000);
+            return COUPON_POOL[((dayIndex % 14) + 14) % 14];
+        }
 
         const canvas = document.getElementById('fireworks');
         const ctx = canvas.getContext('2d');
@@ -308,7 +330,7 @@
                 finalScoreText.innerText = timeTakenSec;
                 document.getElementById('scoreDisplayWrap').style.display = 'block';
 
-                couponCodeText.innerText = generateMockCoupon();
+                couponCodeText.innerText = getCycleCoupon();
                 couponCodeBox.style.display = "block"; 
                 resetRankBox();
 
