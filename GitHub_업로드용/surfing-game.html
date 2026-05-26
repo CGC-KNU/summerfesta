@@ -457,6 +457,29 @@
         }
         function goToApp() { window.open('https://ujulike.com', '_blank'); }
 
+        const COUPON_CYCLE_START = new Date('2026-05-26T00:00:00+09:00');
+        const COUPON_POOL = [
+            'SF3-P8B3', // Day 01: 2026-05-26
+            'SF3-Q2C7', // Day 02: 2026-05-27
+            'SF3-R6D1', // Day 03: 2026-05-28
+            'SF3-S9E4', // Day 04: 2026-05-29
+            'SF3-T3F8', // Day 05: 2026-05-30
+            'SF3-U7G2', // Day 06: 2026-05-31
+            'SF3-V1H6', // Day 07: 2026-06-01
+            'SF3-W4I9', // Day 08: 2026-06-02
+            'SF3-X8J3', // Day 09: 2026-06-03
+            'SF3-Y2K7', // Day 10: 2026-06-04
+            'SF3-Z6L1', // Day 11: 2026-06-05
+            'SF3-A9M4', // Day 12: 2026-06-06
+            'SF3-B3N8', // Day 13: 2026-06-07
+            'SF3-C7P2', // Day 14: 2026-06-08
+        ];
+        function getCycleCoupon() {
+            const diffMs = Date.now() - COUPON_CYCLE_START.getTime();
+            const dayIndex = Math.floor(diffMs / 86400000);
+            return COUPON_POOL[((dayIndex % 14) + 14) % 14];
+        }
+
         let animationId;
         let isPlaying = false;
         let score = 0;
@@ -758,10 +781,7 @@
             if (score >= 300) {
                 couponResultMsg.innerHTML = "🎉 축하합니다!<br>300점을 달성하여 <b>우주라이크 쿠폰</b>이 발급되었습니다!";
                 couponResultMsg.style.color = "#0369a1";
-                function generateMockCoupon() {
-                    return "WL-" + Math.random().toString(36).substring(2, 7).toUpperCase();
-                }
-                couponCodeText.innerText = generateMockCoupon();
+                couponCodeText.innerText = getCycleCoupon();
                 couponCodeBox.style.display = 'block';
             } else {
                 couponResultMsg.innerHTML = `아쉽네요! 쿠폰까지 <b>${300 - score}점</b> 남았습니다.<br>다시 도전해보세요!`;
