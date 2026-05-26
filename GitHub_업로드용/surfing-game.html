@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>서핑 보드 게임 - 우주라이크 여름 맞이</title>
+    
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/variable/pretendardvariable.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Jua&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-blue: #00d2ff;
+            --text-dark: #0747a6; 
+            --title-font: 'Do Hyeon', sans-serif; /* ★ 타이틀용 도현체 추가 ★ */
+            --point-font: 'Jua', sans-serif;
+            --base-font: 'Pretendard Variable', sans-serif;
+            --glass-bg: rgba(255, 255, 255, 0.3);
+            --glass-border: rgba(255, 255, 255, 0.5);
+            --accent-red: #e11d48;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        body {
+            background: linear-gradient(180deg, #b3e5fc 0%, #81d4fa 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            overflow: hidden;
+            font-family: var(--base-font);
+            touch-action: none;
+        }
+
+        .app-container {
+            position: relative;
+            width: 100%;
+            max-width: 480px;
+            height: 100vh;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            outline: none;
+        }
+
+        .ui-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none;
+            z-index: 10;
+        }
+        /* ★ 결과 화면 표시 중에는 스크롤 가능 모드로 전환 */
+        .ui-layer.scrollable {
+            justify-content: flex-start;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 70px 0 24px; /* 상단은 top-bar 높이만큼 비워둠 */
+            pointer-events: auto;
+        }
+        .ui-layer.scrollable::-webkit-scrollbar { display: none; }
+        .ui-layer.scrollable .panel { margin: 0 auto; }
+
+        .top-bar {
+            position: absolute;
+            top: 14px;
+            width: 100%;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            pointer-events: auto;
+        }
+
+        .back-btn {
+            font-family: var(--point-font);
+            background: var(--glass-bg);
+            border: 2px solid var(--glass-border);
+            color: var(--text-dark);
+            padding: 8px 16px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 10px rgba(0, 162, 255, 0.1);
+        }
+
+        .top-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .lives-display {
+            font-size: 1.5rem;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .score-display {
+            font-family: var(--point-font);
+            font-size: 1.5rem;
+            color: var(--text-dark);
+            background: rgba(255, 255, 255, 0.6);
+            padding: 5px 15px;
+            border-radius: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .gauge-container {
+            position: absolute;
+            top: 70px;
+            width: 85%;
+            left: 50%;
+            transform: translateX(-50%);
+            pointer-events: auto;
+            text-align: center;
+            display: none;
+        }
+
+        .gauge-label {
+            font-family: var(--point-font);
+            color: var(--text-dark);
+            font-size: 0.85rem;
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 5px;
+        }
+
+        .gauge-outline {
+            width: 100%;
+            height: 14px;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 10px;
+            border: 1.5px solid var(--glass-border);
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .gauge-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #00d2ff 0%, #0369a1 100%);
+            border-radius: 10px;
+            transition: width 0.3s ease-out;
+            box-shadow: 0 0 10px rgba(0, 210, 255, 0.5);
+        }
+        .gauge-fill.complete {
+            background: linear-gradient(90deg, #38bdf8 0%, #0369a1 100%);
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.6);
+        }
+        .gauge-label.complete { color: #0369a1; }
+
+        .coupon-issued-msg {
+            font-family: var(--point-font);
+            font-size: 0.78rem;
+            color: #0369a1;
+            text-align: center;
+            margin-top: 5px;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            pointer-events: none;
+        }
+        .coupon-issued-msg.visible { opacity: 1; }
+
+        /* ★ 게임 중앙 상단에 표시되는 큰 알림 토스트 (속도 해제 등) */
+        .game-toast {
+            position: absolute;
+            top: 25%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-10px);
+            background: rgba(220, 38, 38, 0.92);
+            color: #fff;
+            padding: 14px 22px;
+            border-radius: 30px;
+            font-family: var(--point-font);
+            font-size: 1.05rem;
+            white-space: nowrap;
+            box-shadow: 0 8px 20px rgba(220, 38, 38, 0.4);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.35s ease, transform 0.35s ease;
+            z-index: 50;
+        }
+        .game-toast.visible {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .panel {
+            background: var(--glass-bg);
+            border: 2px solid var(--glass-border);
+            border-radius: 30px;
+            padding: 30px 20px;
+            text-align: center;
+            font-family: var(--point-font); 
+            box-shadow: 0 10px 25px rgba(0, 162, 255, 0.1);
+            backdrop-filter: blur(10px);
+            pointer-events: auto;
+            transition: opacity 0.3s ease;
+            width: 88%;
+            max-width: 380px;
+        }
+
+        .panel.hidden {
+            opacity: 0;
+            pointer-events: none;
+            display: none;
+        }
+
+        /* ★ 타이틀 폰트 변경 ★ */
+        .panel h1 { 
+            font-family: var(--title-font);
+            font-weight: normal;
+            font-size: 2.8rem; 
+            color: var(--text-dark); 
+            margin-bottom: 5px; 
+            text-shadow: 2px 2px 0px rgba(255, 255, 255, 0.8); 
+        }
+        
+        .panel h2 {
+            font-size: 2.2rem;
+            color: var(--text-dark);
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 0px rgba(255, 255, 255, 0.8);
+        }
+
+        .subtitle { 
+            color: #0284c7; 
+            font-size: 1.4rem; 
+            margin-bottom: 20px; 
+        }
+
+        .info-box {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .info-box p {
+            color: #334155;
+            font-size: 0.95rem;
+            line-height: 1.45;
+            margin-bottom: 28px;
+            word-break: keep-all;
+            white-space: nowrap;
+        }
+
+        .coupon-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        .coupon-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
+            border-radius: 16px;
+            padding: 10px 14px;
+            box-shadow: 0 3px 8px rgba(0, 162, 255, 0.12);
+        }
+
+        .coupon-card .card-badge {
+            background: #0369a1;
+            color: white;
+            font-family: var(--point-font);
+            font-size: 0.82rem;
+            padding: 5px 13px;
+            border-radius: 20px;
+            white-space: nowrap;
+            flex-shrink: 0;
+            box-shadow: 0 2px 5px rgba(3, 105, 161, 0.25);
+        }
+
+        .coupon-card .card-text mark.hl {
+            background: linear-gradient(transparent 50%, #fde68a 50%);
+            color: inherit;
+            padding: 0 2px;
+        }
+
+        .coupon-card .card-text {
+            font-family: var(--point-font);
+            font-size: 0.88rem;
+            color: #0c4a6e;
+            word-break: keep-all;
+        }
+
+        .play-btn {
+            font-family: var(--point-font);
+            background: #0369a1;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 30px;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 15px rgba(3, 105, 161, 0.3);
+            cursor: pointer;
+            transition: transform 0.1s;
+            width: 100%;
+        }
+
+        .play-btn:active {
+            transform: scale(0.95);
+        }
+
+        .controls-hint {
+            position: absolute;
+            bottom: 40px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 40px;
+            font-family: var(--point-font);
+            color: rgba(7, 71, 166, 0.5);
+            font-size: 1.2rem;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container" id="app">
+        <canvas id="gameCanvas"></canvas>
+
+        <div class="ui-layer">
+            <div class="top-bar">
+                <a href="index.html" class="back-btn">◀ 뒤로</a>
+                <div class="top-right">
+                    <div class="lives-display" id="livesVal">❤️❤️❤️</div>
+                    <div class="score-display">점수: <span id="scoreVal">0</span></div>
+                </div>
+            </div>
+
+            <!-- ★ 게임 중 알림 토스트 (속도 해제 등) -->
+            <div class="game-toast" id="speedUnlockToast">지금부터 서핑 보드의 속도 제한이 풀립니다!</div>
+
+            <div class="panel" id="startPanel">
+                <h1 style="text-align: center;">서핑 보드 게임</h1>
+                <p class="subtitle" style="text-align: center;">무더위를 날려줄 시원한 파도타기!</p>
+                
+                <div class="info-box">
+                    <p>좌/우 터치로 장애물을 피하세요!<br>하트를 먹으면 체력을 회복합니다!</p>
+                    <div class="coupon-cards">
+                        <div class="coupon-card">
+                            <span class="card-badge">클리어 조건</span>
+                            <span class="card-text"><mark class="hl">300점 이상</mark> 달성</span>
+                        </div>
+                        <div class="coupon-card">
+                            <span class="card-badge">리워드</span>
+                            <span class="card-text"><mark class="hl">우주라이크 3종 쿠폰</mark></span>
+                        </div>
+                        <div class="coupon-card">
+                            <span class="card-badge">난이도</span>
+                            <span class="card-text">중</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="play-btn" id="startBtn">게임 시작</button>
+            </div>
+
+            <div class="panel hidden" id="gameOverPanel">
+                <div style="font-size: 3.5rem; margin-bottom: 5px;">💥</div>
+                <h2>게임 오버!</h2>
+                <div class="info-box" style="text-align: center; margin-bottom: 12px;">
+                    <p style="margin-bottom: 0; white-space: normal; font-size: 1.1rem; text-align: center;">최종 점수: <span id="finalScore" style="color: #0369a1; font-weight: bold; font-size: 1.4rem;">0</span>점</p>
+                </div>
+                <p id="couponResultMsg" style="font-family:var(--point-font); font-size:0.95rem; word-break:keep-all; line-height:1.6; color:#0369a1; margin-bottom:12px;"></p>
+                <div id="couponCodeBox" style="display:none; background:#f0f9ff; border:2.5px dashed #0369a1; border-radius:20px; padding:18px 16px; margin:4px 0 16px;">
+                    <p style="font-family:var(--base-font); font-size:0.9rem; color:#475569; margin-bottom:8px;">쿠폰 번호 (마이페이지 등록)</p>
+                    <h3 id="couponCodeText" style="font-family:var(--point-font); font-size:2rem; color:#0369a1; letter-spacing:3px; margin-bottom:14px;">XXXX-XXXX</h3>
+                    <div style="display:flex; flex-direction:column; gap:8px;">
+                        <button onclick="copyCoupon()" style="display:flex;align-items:center;justify-content:center;width:100%;padding:10px 0;border-radius:14px;border:none;cursor:pointer;font-family:var(--point-font);font-size:0.85rem;background:transparent;color:#0369a1;text-decoration:underline;text-underline-offset:3px;">쿠폰 번호 복사하기</button>
+                        <button onclick="goToApp()" style="display:flex;align-items:center;justify-content:center;width:100%;padding:10px 0;border-radius:14px;border:none;cursor:pointer;font-family:var(--point-font);font-size:0.85rem;background:#0284c7;color:#fff;">우주라이크 앱 바로 가기</button>
+                    </div>
+                </div>
+
+                <div id="rank-register-box" style="background:rgba(255,255,255,0.5); border:2px dashed #0369a1; border-radius:18px; padding:14px; margin-bottom:14px;">
+                    <p style="font-family:var(--point-font); color:#0369a1; font-size:1rem; margin-bottom:10px;">🏆 랭킹에 등록하기</p>
+                    <input id="rank-nickname" type="text" maxlength="8" placeholder="닉네임 (최대 8자)"
+                        style="width:100%; padding:10px 14px; border:none; border-radius:12px; font-family:var(--point-font); font-size:1rem; text-align:center; background:#fff; color:#0369a1; margin-bottom:10px; outline:none;">
+                    <button id="rank-submit-btn" style="width:100%; padding:12px 0; border:none; border-radius:14px; font-family:var(--point-font); font-size:1rem; background:#0284c7; color:#fff; cursor:pointer;">등록하기</button>
+                    <p id="rank-status" style="font-family:var(--point-font); font-size:0.85rem; color:#0369a1; margin-top:8px; min-height:1em;"></p>
+                </div>
+
+                <button class="play-btn" id="restartBtn">다시 하기</button>
+            </div>
+
+            <div class="gauge-container" id="gaugeContainer">
+                <div class="gauge-label" id="gaugeLabel">
+                    <span>진행도</span>
+                    <span id="gaugePercent">0%</span>
+                </div>
+                <div class="gauge-outline">
+                    <div class="gauge-fill" id="gaugeFill"></div>
+                </div>
+                <div class="coupon-issued-msg" id="couponIssuedMsg">쿠폰이 발급되었습니다! 이제 최고 점수에 도전해보세요!</div>
+            </div>
+
+            <div class="controls-hint" id="controlsHint">
+                <span>👈 좌측 터치</span>
+                <span>우측 터치 👉</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const appContainer = document.getElementById('app');
+
+        const startPanel = document.getElementById('startPanel');
+        const gameOverPanel = document.getElementById('gameOverPanel');
+        const scoreVal = document.getElementById('scoreVal');
+        const livesVal = document.getElementById('livesVal');
+        const finalScore = document.getElementById('finalScore');
+        const couponResultMsg = document.getElementById('couponResultMsg');
+        const controlsHint = document.getElementById('controlsHint');
+        const startBtn = document.getElementById('startBtn');
+        const restartBtn = document.getElementById('restartBtn');
+
+        // 게이지바 관련
+        const gaugeContainer = document.getElementById('gaugeContainer');
+        const gaugeFill = document.getElementById('gaugeFill');
+        const gaugePercent = document.getElementById('gaugePercent');
+        const gaugeLabel = document.getElementById('gaugeLabel');
+        const couponIssuedMsg = document.getElementById('couponIssuedMsg');
+
+        function copyCoupon() {
+            const code = document.getElementById('couponCodeText').innerText;
+            navigator.clipboard.writeText(code).then(() => alert('쿠폰 번호가 복사되었습니다!'))
+                .catch(() => alert('복사 실패: ' + code));
+        }
+        function goToApp() { window.open('https://ujulike.com', '_blank'); }
+
+        let animationId;
+        let isPlaying = false;
+        let score = 0;
+        let gameSpeed = 7; 
+        let frameCount = 0;
+        let hasShownCouponMsg = false; // 쿠폰 발급 토스트가 이번 게임에 표시됐는지
+        let speedUnlocked = false; // 300점 이후 속도 제한 해제 여부
+        let hasShownSpeedUnlockToast = false; // 속도 해제 토스트 1회 표시 플래그
+        let speedPenalty = 0; // 충돌 시 발생하는 일시적 감속 값 (시간이 지나면 0으로 복원)
+        let lastHeartSpawnFrame = -9999; // 마지막 하트 스폰 프레임 (쿨다운 관리)
+
+        let lives = 3; 
+        let isInvincible = false;
+        let invincibilityTimer = 0;
+
+        let isMovingLeft = false;
+        let isMovingRight = false;
+
+        const playerImg = new Image();
+        playerImg.src = '서핑 게임 아이콘/surfer.png'; 
+
+        function resizeCanvas() {
+            canvas.width = appContainer.clientWidth;
+            canvas.height = appContainer.clientHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        const player = {
+            x: canvas.width / 2,
+            y: canvas.height - 120,
+            size: 48, 
+            speed: 7 
+        };
+
+        let obstacles = [];
+        const obstacleTypes = ['🦈', '🪨', '🐙'];
+
+        function handleInputStart(e) {
+            if (!isPlaying) return;
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const screenCenter = window.innerWidth / 2;
+            
+            if (clientX < screenCenter) {
+                isMovingLeft = true;
+                isMovingRight = false;
+            } else {
+                isMovingRight = true;
+                isMovingLeft = false;
+            }
+        }
+
+        function handleInputEnd() {
+            isMovingLeft = false;
+            isMovingRight = false;
+        }
+
+        window.addEventListener('touchstart', handleInputStart, { passive: false });
+        window.addEventListener('mousedown', handleInputStart);
+        window.addEventListener('touchend', handleInputEnd);
+        window.addEventListener('mouseup', handleInputEnd);
+
+        function updateLivesDisplay() {
+            let heartStr = '';
+            for(let i=0; i<lives; i++) heartStr += '❤️';
+            livesVal.innerText = heartStr;
+        }
+
+        function updateGauge() {
+            const targetScore = 300;
+            const progress = Math.min((score / targetScore) * 100, 100);
+            gaugeFill.style.width = progress + '%';
+            gaugePercent.innerText = Math.floor(progress) + '%';
+
+            if (progress >= 100) {
+                gaugeFill.classList.add('complete');
+                gaugeFill.style.background = '';
+                gaugeFill.style.boxShadow = '';
+                gaugeLabel.classList.add('complete');
+                // 한 번만 표시: 5초 후 자동으로 사라짐
+                if (!hasShownCouponMsg) {
+                    hasShownCouponMsg = true;
+                    couponIssuedMsg.classList.add('visible');
+                    setTimeout(() => {
+                        couponIssuedMsg.classList.remove('visible');
+                    }, 5000);
+                }
+            } else {
+                gaugeFill.style.background = 'linear-gradient(90deg, #00d2ff 0%, #0369a1 100%)';
+                gaugeFill.style.boxShadow = '0 0 10px rgba(0, 210, 255, 0.5)';
+            }
+        }
+
+        function initGame() {
+            player.x = canvas.width / 2;
+            obstacles = [];
+            score = 0;
+            lives = 3;
+            isInvincible = false;
+            gameSpeed = 7; 
+            frameCount = 0;
+            isMovingLeft = false;
+            isMovingRight = false;
+            
+            scoreVal.innerText = score;
+            updateLivesDisplay();
+            gaugeFill.classList.remove('complete');
+            gaugeLabel.classList.remove('complete');
+            couponIssuedMsg.classList.remove('visible');
+            hasShownCouponMsg = false; // 새 게임 시작 시 토스트 다시 보이도록 리셋
+            speedUnlocked = false;
+            hasShownSpeedUnlockToast = false;
+            speedPenalty = 0;
+            lastHeartSpawnFrame = -9999;
+            const speedToast = document.getElementById('speedUnlockToast');
+            if (speedToast) speedToast.classList.remove('visible');
+            gaugeFill.style.background = '';
+            gaugeFill.style.boxShadow = '';
+            updateGauge();
+            
+            controlsHint.style.display = 'flex';
+            gaugeContainer.style.display = 'block';
+            
+            startPanel.classList.add('hidden');
+            gameOverPanel.classList.add('hidden');
+            // ★ 게임 시작 시 ui-layer 스크롤 모드 해제
+            document.querySelector('.ui-layer').classList.remove('scrollable');
+            
+            isPlaying = true;
+            update();
+        }
+
+        function spawnObstacle() {
+            let size = 36; 
+            let type = '';
+            let isHeart = false;
+            
+            // ★ 하트 스폰 조건:
+            //   - 체력이 3 미만일 때만
+            //   - 마지막 하트 스폰으로부터 12초(720프레임) 이상 지남
+            //   - 화면에 하트가 하나도 없을 때 (동시 출현 방지)
+            const HEART_COOLDOWN = 720;
+            const heartOnScreen = obstacles.some(o => o.isHeart);
+            const canSpawnHeart = lives < 3 
+                && !heartOnScreen 
+                && (frameCount - lastHeartSpawnFrame) >= HEART_COOLDOWN
+                && Math.random() < 0.5; // 쿨다운이 풀린 직후에도 약간 자연스럽게 등장
+            
+            if (canSpawnHeart) {
+                isHeart = true;
+                type = '❤️';
+                size = 25; // 기존 35의 70%
+                lastHeartSpawnFrame = frameCount;
+            } else {
+                type = obstacleTypes[Math.floor(Math.random() * obstacleTypes.length)];
+            }
+
+            const x = Math.random() * (canvas.width - size * 2) + size;
+            const heartSpeed = Math.max(3, gameSpeed - speedPenalty) * 0.3; // 기존 0.45 → 0.3 (더 느리게)
+            obstacles.push({ x: x, y: -size, size: size, type: type, isHeart: isHeart, speed: isHeart ? heartSpeed : null });
+        }
+
+        function drawBackground() {
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            const bgSpeed = Math.max(3, gameSpeed - speedPenalty);
+            for(let i = 0; i < 5; i++) {
+                let y = (frameCount * (bgSpeed * 0.5) + i * 200) % canvas.height;
+                ctx.moveTo(canvas.width * 0.2 * (i+1), y);
+                ctx.lineTo(canvas.width * 0.2 * (i+1), y + 50);
+            }
+            ctx.stroke();
+        }
+
+        function update() {
+            if (!isPlaying) return;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawBackground();
+
+            // ★ 속도 로직
+            // 기본 속도는 매 프레임 증가. 300점 전까지는 11.5에서 캡, 이후 제한 해제.
+            gameSpeed += 0.018;
+            if (!speedUnlocked && gameSpeed > 11.5) gameSpeed = 11.5;
+            // 충돌로 인한 감속(speedPenalty)은 매 프레임 조금씩 0으로 복원 → 다시 빨라짐
+            if (speedPenalty > 0) {
+                speedPenalty -= 0.025;
+                if (speedPenalty < 0) speedPenalty = 0;
+            }
+            frameCount++;
+
+            if (frameCount % 10 === 0) {
+                score += 1;
+                scoreVal.innerText = score;
+                updateGauge(); 
+                if(score > 50) controlsHint.style.display = 'none';
+                // ★ 350점 도달 시 속도 제한 해제 + 토스트 표시 (4초)
+                if (score >= 350 && !hasShownSpeedUnlockToast) {
+                    hasShownSpeedUnlockToast = true;
+                    speedUnlocked = true;
+                    const t = document.getElementById('speedUnlockToast');
+                    if (t) {
+                        t.classList.add('visible');
+                        setTimeout(() => t.classList.remove('visible'), 4000);
+                    }
+                }
+            }
+
+            if (isInvincible) {
+                invincibilityTimer--;
+                if (invincibilityTimer <= 0) {
+                    isInvincible = false;
+                }
+            }
+
+            if (isMovingLeft && player.x > player.size / 2) {
+                player.x -= player.speed;
+            }
+            if (isMovingRight && player.x < canvas.width - player.size / 2) {
+                player.x += player.speed;
+            }
+
+            if (!isInvincible || Math.floor(frameCount / 5) % 2 === 0) {
+                if (playerImg.complete && playerImg.naturalWidth !== 0) {
+                    ctx.drawImage(playerImg, player.x - player.size / 2, player.y - player.size / 2, player.size, player.size);
+                } else {
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                    ctx.beginPath();
+                    ctx.arc(player.x, player.y, player.size / 2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            // ★ 실제 적용되는 속도 = 누적 속도 - 일시적 감속 페널티
+            const effectiveSpeed = Math.max(3, gameSpeed - speedPenalty);
+
+            let spawnRate = Math.max(15, 70 - Math.floor(effectiveSpeed * 4)); 
+            if (frameCount % spawnRate === 0) {
+                spawnObstacle();
+            }
+
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                let obs = obstacles[i];
+                obs.y += obs.speed !== null ? obs.speed : effectiveSpeed;
+
+                ctx.font = `${obs.size}px Arial`;
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText(obs.type, obs.x, obs.y);
+
+                let dx = player.x - obs.x;
+                let dy = player.y - obs.y;
+                let distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < (player.size/2 + obs.size/2) * 0.8) {
+                    if (obs.isHeart) {
+                        if (lives < 3) lives++; 
+                        updateLivesDisplay();
+                        obstacles.splice(i, 1); 
+                        continue;
+                    } else if (!isInvincible) {
+                        lives--;
+                        updateLivesDisplay();
+                        obstacles.splice(i, 1); 
+                        // ★ 충돌 시 일시 감속 (시간이 지나며 다시 복원됨)
+                        speedPenalty += 2.5;
+                        if (speedPenalty > 5) speedPenalty = 5; // 너무 느려지지 않도록 상한
+                        // ★ 하트 쿨다운도 리셋: 부딪힌 직후엔 하트가 바로 나오지 않고, 최소 12초 후 등장
+                        lastHeartSpawnFrame = frameCount;
+                        
+                        if (lives <= 0) {
+                            gameOver();
+                        } else {
+                            isInvincible = true;
+                            invincibilityTimer = 90; 
+                        }
+                        continue;
+                    }
+                }
+
+                if (obs.y > canvas.height + obs.size) {
+                    obstacles.splice(i, 1);
+                }
+            }
+
+            animationId = requestAnimationFrame(update);
+        }
+
+        function gameOver() {
+            isPlaying = false;
+            cancelAnimationFrame(animationId);
+            finalScore.innerText = score;
+            gaugeContainer.style.display = 'none';
+
+            const couponCodeBox = document.getElementById('couponCodeBox');
+            const couponCodeText = document.getElementById('couponCodeText');
+
+            if (score >= 300) {
+                couponResultMsg.innerHTML = "🎉 축하합니다!<br>300점을 달성하여 <b>우주라이크 쿠폰</b>이 발급되었습니다!";
+                couponResultMsg.style.color = "#0369a1";
+                function generateMockCoupon() {
+                    return "WL-" + Math.random().toString(36).substring(2, 7).toUpperCase();
+                }
+                couponCodeText.innerText = generateMockCoupon();
+                couponCodeBox.style.display = 'block';
+            } else {
+                couponResultMsg.innerHTML = `아쉽네요! 쿠폰까지 <b>${300 - score}점</b> 남았습니다.<br>다시 도전해보세요!`;
+                couponResultMsg.style.color = "#475569";
+                couponCodeBox.style.display = 'none';
+            }
+
+            gameOverPanel.classList.remove('hidden');
+            resetRankBox();
+            // ★ 결과 화면 표시 시 ui-layer 스크롤 모드 활성화, 스크롤 위치 맨 위로
+            const uiLayer = document.querySelector('.ui-layer');
+            uiLayer.classList.add('scrollable');
+            uiLayer.scrollTop = 0;
+        }
+
+        function resetRankBox() {
+            const box = document.getElementById('rank-register-box');
+            const btn = document.getElementById('rank-submit-btn');
+            const input = document.getElementById('rank-nickname');
+            const status = document.getElementById('rank-status');
+            if (!box) return;
+            box.style.display = '';
+            btn.disabled = false;
+            btn.innerText = '등록하기';
+            input.value = '';
+            input.disabled = false;
+            status.innerText = '';
+            status.style.color = '#0369a1';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const btn = document.getElementById('rank-submit-btn');
+            const input = document.getElementById('rank-nickname');
+            const status = document.getElementById('rank-status');
+
+            btn.addEventListener('click', async () => {
+                const nick = input.value.trim();
+                if (!nick) {
+                    status.style.color = '#dc2626';
+                    status.innerText = '닉네임을 입력해주세요.';
+                    return;
+                }
+                if (window.UJU_RANK && !window.UJU_RANK.isCleanNickname(nick)) {
+                    status.style.color = '#dc2626';
+                    status.innerText = '사용할 수 없는 닉네임이에요.';
+                    return;
+                }
+                if (!window.UJU_RANK || !window.UJU_RANK.submitScore) {
+                    status.style.color = '#dc2626';
+                    status.innerText = '랭킹 서버에 연결할 수 없어요.';
+                    return;
+                }
+                btn.disabled = true;
+                input.disabled = true;
+                btn.innerText = '등록 중...';
+                status.style.color = '#0369a1';
+                status.innerText = '';
+                try {
+                    await window.UJU_RANK.submitScore('surfing', nick, score);
+                    status.style.color = '#0369a1';
+                    status.innerText = '✅ 등록 완료! 랭킹 보드에서 확인하세요.';
+                    btn.innerText = '등록 완료';
+                } catch (e) {
+                    console.error(e);
+                    status.style.color = '#dc2626';
+                    status.innerText = '등록에 실패했어요. 잠시 후 다시 시도해주세요.';
+                    btn.disabled = false;
+                    input.disabled = false;
+                    btn.innerText = '등록하기';
+                }
+            });
+        });
+
+        startBtn.addEventListener('click', initGame);
+        restartBtn.addEventListener('click', initGame);
+
+    </script>
+
+    <script type="module">
+        import { submitScore, isCleanNickname } from './firebase-config.js';
+        window.UJU_RANK = { submitScore, isCleanNickname };
+    </script>
+</body>
+</html>

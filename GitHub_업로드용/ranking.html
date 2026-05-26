@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>우주라이크 미니게임 - 랭킹</title>
+
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/variable/pretendardvariable.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-blue: #00d2ff;
+            --text-dark: #1e3a8a;
+            --point-font: 'Jua', sans-serif;
+            --base-font: 'Pretendard Variable', sans-serif;
+            --glass-bg: rgba(255, 255, 255, 0.3);
+            --glass-border: rgba(255, 255, 255, 0.5);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            background: linear-gradient(180deg, #b3e5fc 0%, #81d4fa 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            font-family: var(--base-font);
+            overflow-x: hidden;
+        }
+
+        .bubbles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+        .bubble {
+            position: absolute; bottom: -50px; background: rgba(255, 255, 255, 0.4);
+            border-radius: 50%; animation: floatUp 8s infinite ease-in;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(1); opacity: 0; }
+            30% { opacity: 0.8; }
+            100% { transform: translateY(-120vh) scale(1.6); opacity: 0; }
+        }
+
+        .app-container {
+            position: relative;
+            width: 100%;
+            max-width: 480px;
+            min-height: 100vh;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 30px 20px 50px;
+        }
+
+        /* 헤더 */
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .back-btn {
+            background: rgba(255, 255, 255, 0.5);
+            border: none;
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .header h1 {
+            font-family: var(--point-font);
+            font-size: 1.8rem;
+            color: var(--text-dark);
+        }
+
+        /* 탭 */
+        .tab-bar {
+            display: flex;
+            background: var(--glass-bg);
+            border: 2px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 6px;
+            margin-bottom: 20px;
+            gap: 4px;
+        }
+        .tab-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            padding: 10px 0;
+            font-family: var(--point-font);
+            font-size: 0.95rem;
+            color: #475569;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            white-space: nowrap;
+        }
+        .tab-btn.active {
+            background: #ffffff;
+            color: #0369a1;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        /* 안내 */
+        .info-line {
+            text-align: center;
+            font-family: var(--point-font);
+            font-size: 0.95rem;
+            color: #0369a1;
+            background: rgba(255,255,255,0.4);
+            padding: 8px 14px;
+            border-radius: 20px;
+            margin-bottom: 16px;
+        }
+
+        /* 랭킹 리스트 */
+        .ranking-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .ranking-item {
+            display: flex;
+            align-items: center;
+            background: var(--glass-bg);
+            border: 2px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 14px 16px;
+            gap: 14px;
+        }
+        .ranking-item.top1 {
+            background: linear-gradient(135deg, rgba(255,225,100,0.5), rgba(255,255,255,0.3));
+            border-color: #ffd700;
+            box-shadow: 0 6px 18px rgba(255, 200, 0, 0.25);
+        }
+        .ranking-item.top2 {
+            background: linear-gradient(135deg, rgba(220,230,240,0.6), rgba(255,255,255,0.3));
+            border-color: #cbd5e1;
+        }
+        .ranking-item.top3 {
+            background: linear-gradient(135deg, rgba(255,200,150,0.5), rgba(255,255,255,0.3));
+            border-color: #fdba74;
+        }
+        .rank-num {
+            font-family: var(--point-font);
+            font-size: 1.4rem;
+            color: var(--text-dark);
+            width: 42px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .ranking-item.top1 .rank-num,
+        .ranking-item.top2 .rank-num,
+        .ranking-item.top3 .rank-num {
+            font-size: 1.6rem;
+        }
+        .rank-nick {
+            flex: 1;
+            font-family: var(--point-font);
+            font-size: 1.1rem;
+            color: var(--text-dark);
+            word-break: break-all;
+        }
+        .rank-score {
+            font-family: var(--point-font);
+            font-size: 1.2rem;
+            color: #0369a1;
+            font-weight: bold;
+        }
+
+        /* 로딩/빈 상태 */
+        .state-msg {
+            text-align: center;
+            padding: 60px 20px;
+            font-family: var(--point-font);
+            font-size: 1.1rem;
+            color: #475569;
+        }
+        .state-msg .emoji {
+            font-size: 3rem;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .reset-btn {
+            margin-left: auto;
+            background: rgba(255, 255, 255, 0.5);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-family: var(--point-font);
+            font-size: 0.85rem;
+            color: #dc2626;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            flex-shrink: 0;
+        }
+        .reset-btn:active { opacity: 0.7; }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal-card {
+            background: #fff;
+            border-radius: 24px;
+            padding: 28px 24px;
+            width: 90%;
+            max-width: 340px;
+            text-align: center;
+        }
+        .modal-card h3 {
+            font-family: var(--point-font);
+            font-size: 1.3rem;
+            color: #1e3a8a;
+            margin-bottom: 8px;
+        }
+        .modal-card p {
+            font-family: var(--base-font);
+            font-size: 0.9rem;
+            color: #64748b;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+        .modal-pw-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 14px;
+            font-family: var(--point-font);
+            font-size: 1rem;
+            text-align: center;
+            margin-bottom: 8px;
+            outline: none;
+            box-sizing: border-box;
+        }
+        .modal-pw-input:focus { border-color: #0369a1; }
+        .modal-error {
+            font-family: var(--point-font);
+            font-size: 0.85rem;
+            color: #dc2626;
+            min-height: 1.2em;
+            margin-bottom: 8px;
+        }
+        .modal-btns { display: flex; gap: 8px; }
+        .modal-btns button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 14px;
+            font-family: var(--point-font);
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        .modal-cancel { background: #f1f5f9; color: #475569; }
+        .modal-confirm { background: #dc2626; color: #fff; }
+        .modal-confirm:disabled { background: #fca5a5; cursor: not-allowed; }
+
+        .spinner {
+            width: 36px; height: 36px;
+            border: 4px solid rgba(3, 105, 161, 0.2);
+            border-top-color: #0369a1;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 14px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div class="bubbles" id="bubbles-container"></div>
+
+    <div class="app-container">
+        <div class="header">
+            <button class="back-btn" onclick="location.href='index.html'">←</button>
+            <h1>🏆 랭킹 보드</h1>
+            <button class="reset-btn" id="reset-btn">초기화</button>
+        </div>
+
+        <!-- 초기화 비밀번호 모달 -->
+        <div class="modal-overlay" id="reset-modal">
+            <div class="modal-card">
+                <div style="font-size:2.5rem; margin-bottom:10px;">🔒</div>
+                <h3>랭킹 초기화</h3>
+                <p>관리자 비밀번호를 입력하면<br><strong id="modal-game-name" style="color:#0369a1;"></strong>의<br>모든 랭킹이 삭제됩니다.</p>
+                <input id="reset-pw-input" class="modal-pw-input" type="password" placeholder="비밀번호 입력">
+                <p class="modal-error" id="reset-pw-error"></p>
+                <div class="modal-btns">
+                    <button class="modal-cancel" id="reset-cancel-btn">취소</button>
+                    <button class="modal-confirm" id="reset-confirm-btn">초기화</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-bar">
+            <button class="tab-btn active" data-game="watermelon">🍉 수박 게임</button>
+            <button class="tab-btn" data-game="surfing">🏄 서핑 게임</button>
+            <button class="tab-btn" data-game="icebreaking">🧊 얼음 깨기</button>
+        </div>
+
+        <div class="info-line">TOP 20 · 실시간 업데이트</div>
+
+        <div class="ranking-list" id="ranking-list">
+            <div class="state-msg">
+                <div class="spinner"></div>
+                불러오는 중...
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { fetchRanking, resetRanking } from './firebase-config.js';
+
+        const RESET_PASSWORD = 'admin2025';
+
+        const listEl = document.getElementById('ranking-list');
+        const tabs = document.querySelectorAll('.tab-btn');
+        let currentGame = 'watermelon';
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const initGame = urlParams.get('game');
+        if (initGame) {
+            const matchedTab = Array.from(tabs).find(t => t.dataset.game === initGame);
+            if (matchedTab) {
+                currentGame = initGame;
+                tabs.forEach(t => t.classList.remove('active'));
+                matchedTab.classList.add('active');
+            }
+        }
+
+        function getGameEmoji() {
+            if (currentGame === 'watermelon') return '🍉';
+            if (currentGame === 'surfing') return '🏄‍♂️';
+            if (currentGame === 'icebreaking') return '🧊';
+            return '🏆';
+        }
+
+        function renderLoading() {
+            listEl.innerHTML = `
+                <div class="state-msg">
+                    <div class="spinner"></div>
+                    불러오는 중...
+                </div>`;
+        }
+
+        function renderEmpty() {
+            listEl.innerHTML = `
+                <div class="state-msg">
+                    <span class="emoji">${getGameEmoji()}</span>
+                    아직 등록된 기록이 없어요.<br>
+                    첫 번째 기록의 주인공이 되어보세요!
+                </div>`;
+        }
+
+        function renderError(msg) {
+            listEl.innerHTML = `
+                <div class="state-msg">
+                    <span class="emoji">⚠️</span>
+                    랭킹을 불러오지 못했어요.<br>
+                    <small style="font-size: 0.8rem; color: #94a3b8;">${msg || ''}</small>
+                </div>`;
+        }
+
+        function escapeHtml(s) {
+            return String(s).replace(/[&<>"']/g, c => ({
+                '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+            }[c]));
+        }
+
+        function renderList(list) {
+            if (!list || list.length === 0) { renderEmpty(); return; }
+            listEl.innerHTML = list.map((item, i) => {
+                const rank = i + 1;
+                let topClass = '';
+                let rankDisplay = rank;
+                if (rank === 1) { topClass = 'top1'; rankDisplay = '🥇'; }
+                else if (rank === 2) { topClass = 'top2'; rankDisplay = '🥈'; }
+                else if (rank === 3) { topClass = 'top3'; rankDisplay = '🥉'; }
+                
+                // ★ 점수 표기 변환 로직 (얼음깨기는 시간(초)로 표기)
+                let scoreText = item.score.toLocaleString() + '점';
+                if (currentGame === 'icebreaking') {
+                    // 저장 시: 100000 - timeTakenMs (제한시간 60초 = 40000~100000 사이가 정상)
+                    const timeMs = 100000 - item.score;
+                    // 비정상 값 방어: 0초 미만이거나 60초 초과면 60초로 캡
+                    const clampedMs = Math.max(0, Math.min(timeMs, 60000));
+                    scoreText = (clampedMs / 1000).toFixed(2) + '초';
+                }
+
+                return `
+                    <div class="ranking-item ${topClass}">
+                        <div class="rank-num">${rankDisplay}</div>
+                        <div class="rank-nick">${escapeHtml(item.nickname)}</div>
+                        <div class="rank-score">${scoreText}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function loadRanking() {
+            renderLoading();
+            try {
+                const list = await fetchRanking(currentGame, 20);
+                renderList(list);
+            } catch (e) {
+                console.error(e);
+                renderError(e.message);
+            }
+        }
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                currentGame = tab.dataset.game;
+                loadRanking();
+            });
+        });
+
+        loadRanking();
+
+        // ─── 초기화 모달 ───
+        const resetModal = document.getElementById('reset-modal');
+        const resetPwInput = document.getElementById('reset-pw-input');
+        const resetPwError = document.getElementById('reset-pw-error');
+        const resetConfirmBtn = document.getElementById('reset-confirm-btn');
+
+        function getGameDisplayName() {
+            if (currentGame === 'watermelon') return '수박 게임';
+            if (currentGame === 'surfing') return '서핑 게임';
+            if (currentGame === 'icebreaking') return '얼음 깨기';
+            return currentGame;
+        }
+
+        document.getElementById('reset-btn').addEventListener('click', () => {
+            document.getElementById('modal-game-name').innerText = getGameDisplayName();
+            resetPwInput.value = '';
+            resetPwError.innerText = '';
+            resetConfirmBtn.disabled = false;
+            resetConfirmBtn.innerText = '초기화';
+            resetModal.classList.add('open');
+            setTimeout(() => resetPwInput.focus(), 100);
+        });
+
+        document.getElementById('reset-cancel-btn').addEventListener('click', () => {
+            resetModal.classList.remove('open');
+        });
+
+        resetModal.addEventListener('click', (e) => {
+            if (e.target === resetModal) resetModal.classList.remove('open');
+        });
+
+        resetConfirmBtn.addEventListener('click', async () => {
+            const pw = resetPwInput.value;
+            if (pw !== RESET_PASSWORD) {
+                resetPwError.innerText = '비밀번호가 틀렸습니다.';
+                resetPwInput.select();
+                return;
+            }
+            resetConfirmBtn.disabled = true;
+            resetConfirmBtn.innerText = '초기화 중...';
+            resetPwError.innerText = '';
+            try {
+                await resetRanking(currentGame);
+                resetModal.classList.remove('open');
+                loadRanking();
+            } catch (e) {
+                console.error(e);
+                resetPwError.innerText = '초기화에 실패했습니다. 다시 시도해주세요.';
+                resetConfirmBtn.disabled = false;
+                resetConfirmBtn.innerText = '초기화';
+            }
+        });
+
+        const container = document.getElementById('bubbles-container');
+        for(let i = 0; i < 12; i++) {
+            const b = document.createElement('div');
+            b.classList.add('bubble');
+            const size = Math.random() * 50 + 20;
+            b.style.width = `${size}px`;
+            b.style.height = `${size}px`;
+            b.style.left = `${Math.random() * 100}%`;
+            b.style.animationDuration = `${Math.random() * 4 + 6}s`;
+            b.style.animationDelay = `${Math.random() * 5}s`;
+            container.appendChild(b);
+        }
+    </script>
+</body>
+</html>
