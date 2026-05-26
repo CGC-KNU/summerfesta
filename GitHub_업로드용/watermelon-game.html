@@ -305,8 +305,28 @@
                 .catch(() => alert('복사 실패: ' + code));
         }
         function goToApp() { window.open('https://ujulike.com', '_blank'); }
-        function generateMockCoupon() {
-            return "WL-" + Math.random().toString(36).substring(2, 7).toUpperCase();
+
+        const COUPON_CYCLE_START = new Date('2026-05-26T00:00:00+09:00');
+        const COUPON_POOL = [
+            'SF5-D1Q6', // Day 01: 2026-05-26
+            'SF5-E4R9', // Day 02: 2026-05-27
+            'SF5-F8S3', // Day 03: 2026-05-28
+            'SF5-G2T7', // Day 04: 2026-05-29
+            'SF5-H6U1', // Day 05: 2026-05-30
+            'SF5-I9V4', // Day 06: 2026-05-31
+            'SF5-J3W8', // Day 07: 2026-06-01
+            'SF5-K7X2', // Day 08: 2026-06-02
+            'SF5-L1Y6', // Day 09: 2026-06-03
+            'SF5-M4Z9', // Day 10: 2026-06-04
+            'SF5-N8A3', // Day 11: 2026-06-05
+            'SF5-O2B7', // Day 12: 2026-06-06
+            'SF5-P6C1', // Day 13: 2026-06-07
+            'SF5-Q9D4', // Day 14: 2026-06-08
+        ];
+        function getCycleCoupon() {
+            const diffMs = Date.now() - COUPON_CYCLE_START.getTime();
+            const dayIndex = Math.floor(diffMs / 86400000);
+            return COUPON_POOL[((dayIndex % 14) + 14) % 14];
         }
 
         const FOLDER_PATH = "./수박게임 과일 아이콘/";
@@ -603,7 +623,7 @@
                     heading.innerText = "게임 오버!";
                     msg.innerHTML = "🎉 축하합니다!<br>대왕 수박을 만들어 <b>우주라이크 5종 쿠폰</b>이 발급되었습니다!";
                     msg.style.color = "#0369a1";
-                    document.getElementById('couponCodeText').innerText = generateMockCoupon();
+                    document.getElementById('couponCodeText').innerText = getCycleCoupon();
                     codeBox.style.display = 'block';
                 } else {
                     icon.innerText = "💥";
