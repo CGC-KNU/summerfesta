@@ -1,0 +1,16 @@
+{
+  "name": "summerfesta-root",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Serve static site from GitHub_업로드용 for deployment platforms.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
