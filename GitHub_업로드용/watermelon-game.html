@@ -347,27 +347,27 @@
 
         const FOLDER_PATH = "./수박게임 과일 아이콘/";
         const FRUITS = [
-            { name: "체리", radius: 15, src: FOLDER_PATH + "cherry.png", img: new Image() },
-            { name: "딸기", radius: 22, src: FOLDER_PATH + "strawberry.png", img: new Image() },
-            { name: "포도", radius: 30, src: FOLDER_PATH + "grape.png", img: new Image() },
-            { name: "한라봉", radius: 40, src: FOLDER_PATH + "orange.png", img: new Image() },
-            { name: "감", radius: 52, src: FOLDER_PATH + "persimmon.png", img: new Image() },
-            { name: "사과", radius: 65, src: FOLDER_PATH + "apple.png", img: new Image() },
-            { name: "배", radius: 80, src: FOLDER_PATH + "pear.png", img: new Image() },
-            { name: "복숭아", radius: 95, src: FOLDER_PATH + "peach.png", img: new Image() },
-            { name: "파인애플", radius: 110, src: FOLDER_PATH + "pineapple.png", img: new Image() },
-            { name: "멜론", radius: 130, src: FOLDER_PATH + "melon.png", img: new Image() },
-            { name: "수박", radius: 150, src: FOLDER_PATH + "watermelon.png", img: new Image() }
+            { name: "체리", radius: 14, src: FOLDER_PATH + "cherry.png", img: new Image() },
+            { name: "딸기", radius: 20, src: FOLDER_PATH + "strawberry.png", img: new Image() },
+            { name: "포도", radius: 27, src: FOLDER_PATH + "grape.png", img: new Image() },
+            { name: "한라봉", radius: 36, src: FOLDER_PATH + "orange.png", img: new Image() },
+            { name: "감", radius: 47, src: FOLDER_PATH + "persimmon.png", img: new Image() },
+            { name: "사과", radius: 59, src: FOLDER_PATH + "apple.png", img: new Image() },
+            { name: "배", radius: 72, src: FOLDER_PATH + "pear.png", img: new Image() },
+            { name: "복숭아", radius: 86, src: FOLDER_PATH + "peach.png", img: new Image() },
+            { name: "파인애플", radius: 99, src: FOLDER_PATH + "pineapple.png", img: new Image() },
+            { name: "멜론", radius: 117, src: FOLDER_PATH + "melon.png", img: new Image() },
+            { name: "수박", radius: 135, src: FOLDER_PATH + "watermelon.png", img: new Image() }
         ];
         FRUITS.forEach(f => f.img.src = f.src);
 
         let engine, render, runner, score = 0;
         let currentFruitIndex = 0, nextFruitIndex = 0, maxFruitLevel = 0;
-        let currentPreviewX = 200, isGameOver = false, canDrop = true;
+        let currentPreviewX = 262, isGameOver = false, canDrop = true;
         let hasShownToast = false;
         
         // 캔버스 내부 논리 해상도. HITBOX_SCALE=1로 시각 반경과 물리 반경 완전 일치
-        const BASE_W = 400, BASE_H = 680, SCALE = 1.25;
+        const BASE_W = 420, BASE_H = 680, SCALE = 1.25;
         const width = BASE_W * SCALE, height = BASE_H * SCALE, HITBOX_SCALE = 1.0;
         // ★ 게임 플레이 영역의 안쪽 여백 (흰 테두리가 그려질 두께, 캔버스 좌표 단위)
         const FRAME_THICKNESS = 4;
@@ -581,7 +581,7 @@
             if (!area || !wrapper) return;
             const aw = area.clientWidth;
             const ah = area.clientHeight;
-            const ratio = 400 / 680; // 가로/세로 비율
+            const ratio = 420 / 680; // 가로/세로 비율
             let w, h;
             if (aw / ah > ratio) {
                 // 영역이 비율보다 가로로 넓음 → 세로에 맞춤
