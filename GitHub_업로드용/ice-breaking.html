@@ -207,7 +207,23 @@
             navigator.clipboard.writeText(code).then(() => alert('쿠폰 번호가 복사되었습니다!'))
                 .catch(() => alert('복사 실패: ' + code));
         }
-        function goToApp() { window.open('https://ujulike.com', '_blank'); }
+        function goToApp() {
+            var ua = navigator.userAgent || navigator.vendor || window.opera;
+            var isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+            var storeUrl = isIOS
+                ? 'https://apps.apple.com/kr/app/wouldulike/id6740640251'
+                : 'https://play.google.com/store/apps/details?id=com.coggiri.new1';
+
+            var fallback = setTimeout(function() {
+                window.location.href = storeUrl;
+            }, 1500);
+
+            window.addEventListener('blur', function() {
+                clearTimeout(fallback);
+            }, { once: true });
+
+            window.location.href = 'kakao967525b584e9c1e2a2b5253888b42c83://oauth';
+        }
 
         const COUPON_CYCLE_START = new Date('2026-05-26T00:00:00+09:00');
         const COUPON_POOL = [

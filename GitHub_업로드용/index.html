@@ -438,6 +438,30 @@
         overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
     }
 
+    function goToAppStore() {
+        var ua = navigator.userAgent || navigator.vendor || window.opera;
+        var isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+        var storeUrl = isIOS
+            ? 'https://apps.apple.com/kr/app/wouldulike/id6740640251'
+            : 'https://play.google.com/store/apps/details?id=com.coggiri.new1';
+
+        // 앱이 설치된 경우 열기 시도, 1.5초 후 미설치로 판단해 스토어로 이동
+        var fallback = setTimeout(function() {
+            window.location.href = storeUrl;
+        }, 1500);
+
+        window.addEventListener('blur', function() {
+            clearTimeout(fallback);
+        }, { once: true });
+
+        window.location.href = 'kakao967525b584e9c1e2a2b5253888b42c83://oauth';
+    }
+
+    function initAppLinkButton() {
+        var btn = document.getElementById('appLinkBtn');
+        if (btn) btn.addEventListener('click', goToAppStore);
+    }
+
     function initShareButton() {
         const shareBtn = document.getElementById('shareBtn');
         if (!shareBtn) return;
@@ -510,7 +534,7 @@
         });
     }
 
-    window.onload = () => { createBubbles(); initObserver(); initPopup(); initShareButton(); };
+    window.onload = () => { createBubbles(); initObserver(); initPopup(); initAppLinkButton(); initShareButton(); };
 </script>
 </body>
 </html>
